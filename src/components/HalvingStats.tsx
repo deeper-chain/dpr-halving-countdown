@@ -9,25 +9,63 @@ interface Props {
   stats: HalvingStatsType;
 }
 
-// Add a new component for animated number
+// Particle effect component
+const ParticleEffect = () => (
+  <div className="absolute inset-0 overflow-hidden">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 2 }}
+      className="absolute inset-0"
+      style={{
+        background: 'radial-gradient(circle at center, rgba(96,165,250,0.03) 0%, transparent 70%)',
+      }}
+    >
+      {/* Add dynamic particles here */}
+    </motion.div>
+  </div>
+);
+
+// Enhanced AnimatedNumber with improved 3D effect
 const AnimatedNumber = ({ value }: { value: number }) => (
-  <div className="relative h-24 overflow-hidden">
+  <div className="relative h-40 perspective-[1000px]">
     <AnimatePresence mode="wait">
-      <motion.span
+      <motion.div
         key={value}
-        initial={{ y: 50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: -50, opacity: 0 }}
+        initial={{ rotateX: -120, y: 40, opacity: 0, scale: 0.9 }}
+        animate={{ rotateX: 0, y: 0, opacity: 1, scale: 1 }}
+        exit={{ rotateX: 120, y: -40, opacity: 0, scale: 0.9 }}
         transition={{ 
           type: "spring",
-          stiffness: 300,
-          damping: 30
+          stiffness: 400,
+          damping: 35,
+          mass: 1.5
         }}
-        className="absolute inset-0 flex items-center justify-center text-6xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"
+        className="absolute inset-0 flex items-center justify-center"
       >
-        {value.toString().padStart(2, '0')}
-      </motion.span>
+        <span 
+          className="text-8xl font-bold tracking-tight"
+          style={{
+            background: 'linear-gradient(135deg, #60A5FA 0%, #818CF8 50%, #A78BFA 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            textShadow: '0 0 40px rgba(96, 165, 250, 0.4)',
+            filter: 'drop-shadow(0 0 2px rgba(96, 165, 250, 0.2))'
+          }}
+        >
+          {value.toString().padStart(2, '0')}
+        </span>
+      </motion.div>
     </AnimatePresence>
+    
+    {/* Add ripple effect on number change */}
+    <motion.div
+      key={`ripple-${value}`}
+      initial={{ scale: 0.8, opacity: 0.5 }}
+      animate={{ scale: 1.2, opacity: 0 }}
+      transition={{ duration: 1, ease: "easeOut" }}
+      className="absolute inset-0 bg-blue-500/10 rounded-full blur-xl"
+    />
   </div>
 );
 
@@ -75,75 +113,125 @@ export default function HalvingStats({ stats }: Props) {
   }, [stats.remainingAmount, stats.averageDailyIncrease]); // 依赖项更新
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a192f] via-[#20295f] to-[#0a192f] text-white">
-      {/* Particle effect background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="particles-container" /> {/* 需要添加粒子效果组件 */}
-      </div>
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#0a192f] via-[#1a1f3c] to-[#0a192f]">
+      <ParticleEffect />
+      
+      {/* Add subtle aurora effect */}
+      <div className="absolute inset-0 bg-gradient-radial from-blue-500/5 to-transparent opacity-50 animate-pulse" />
 
-      <div className="container mx-auto px-4 py-16 relative z-10">
-        <h1 className="text-4xl md:text-6xl font-bold text-center mb-16 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+      <div className="relative z-10 container mx-auto px-4 min-h-screen flex flex-col justify-center items-center">
+        {/* Enhanced title with better 3D effect */}
+        <motion.h1 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-6xl md:text-7xl font-bold text-center mb-24 tracking-tight"
+          style={{
+            background: 'linear-gradient(135deg, #60A5FA 0%, #818CF8 50%, #A78BFA 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            textShadow: '0 0 50px rgba(96, 165, 250, 0.3)',
+            filter: 'drop-shadow(0 0 2px rgba(96, 165, 250, 0.2))'
+          }}
+        >
           DPR Second Halving Countdown
-        </h1>
+        </motion.h1>
 
-        {/* Main countdown timer */}
-        <div className="max-w-4xl mx-auto mb-24">
-          <div className="grid grid-cols-4 gap-8 text-center">
-            {Object.entries(timeLeft).map(([unit, value]) => (
+        {/* Enhanced countdown timer with improved layout */}
+        <div className="w-full max-w-6xl mx-auto mb-28">
+          <div className="grid grid-cols-4 gap-8 md:gap-12">
+            {Object.entries(timeLeft).map(([unit, value], index) => (
               <motion.div
                 key={unit}
-                className="bg-white/10 backdrop-blur-lg rounded-xl p-6 shadow-xl"
-                whileHover={{ scale: 1.05 }}
-                transition={{ type: "spring", stiffness: 300 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="relative group"
+                whileHover={{ scale: 1.02, z: 1 }}
               >
-                <AnimatedNumber value={value} />
-                <p className="text-gray-400 mt-4 text-lg capitalize">{unit}</p>
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-2xl blur-xl group-hover:opacity-70 transition-all duration-300" />
+                <div 
+                  className="relative overflow-hidden rounded-2xl backdrop-blur-xl bg-white/[0.02] border border-white/[0.05]"
+                  style={{
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1)',
+                    transform: 'translateZ(0)'
+                  }}
+                >
+                  <div className="p-6 md:p-8">
+                    <AnimatedNumber value={value} />
+                    <p className="text-gray-400/90 mt-4 text-lg font-medium tracking-wider text-center uppercase">
+                      {unit}
+                    </p>
+                  </div>
+                </div>
               </motion.div>
             ))}
           </div>
         </div>
 
-        {/* Stats cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          <motion.div
-            className="bg-white/10 backdrop-blur-lg rounded-xl p-8 shadow-xl"
-            whileHover={{ scale: 1.02 }}
-            transition={{ type: "spring", stiffness: 300 }}
-          >
-            <h2 className="text-gray-400 mb-3">Current Issuance</h2>
-            <p className="text-3xl font-bold text-blue-400">
-              {formatNumber(stats.currentIssuance)} DPR
-            </p>
-          </motion.div>
-
-          <motion.div
-            className="bg-white/10 backdrop-blur-lg rounded-xl p-8 shadow-xl"
-            whileHover={{ scale: 1.02 }}
-            transition={{ type: "spring", stiffness: 300 }}
-          >
-            <h2 className="text-gray-400 mb-3">Remaining Until Halving</h2>
-            <p className="text-3xl font-bold text-green-400">
-              {formatNumber(stats.remainingAmount)} DPR
-            </p>
-          </motion.div>
-
-          <motion.div
-            className="bg-white/10 backdrop-blur-lg rounded-xl p-8 shadow-xl"
-            whileHover={{ scale: 1.02 }}
-            transition={{ type: "spring", stiffness: 300 }}
-          >
-            <h2 className="text-gray-400 mb-3">Daily Average Increase</h2>
-            <p className="text-3xl font-bold text-purple-400">
-              {formatNumber(stats.averageDailyIncrease)} DPR
-            </p>
-          </motion.div>
+        {/* Stats cards with consistent height and enhanced effects */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl mx-auto">
+          {[
+            { 
+              label: 'Current Issuance', 
+              value: stats.currentIssuance, 
+              color: 'from-blue-400 via-blue-500 to-blue-600',
+              unit: 'DPR'
+            },
+            { 
+              label: 'Remaining Until Halving', 
+              value: stats.remainingAmount, 
+              color: 'from-green-400 via-green-500 to-green-600',
+              unit: 'DPR'
+            },
+            { 
+              label: 'Daily Average Increase', 
+              value: stats.averageDailyIncrease, 
+              color: 'from-purple-400 via-purple-500 to-purple-600',
+              unit: 'DPR'
+            }
+          ].map(({ label, value, color, unit }) => (
+            <motion.div
+              key={label}
+              className="group relative h-full"
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] to-white/[0.1] rounded-2xl blur-xl group-hover:opacity-70 transition-opacity" />
+              <div 
+                className="relative h-full rounded-2xl backdrop-blur-xl p-8 border border-white/[0.05] flex flex-col justify-between"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.05) 100%)',
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1)'
+                }}
+              >
+                <h2 className="text-gray-400 text-lg font-medium mb-4 tracking-wide">{label}</h2>
+                <div className="flex items-baseline gap-2">
+                  <p className={`text-2xl md:text-3xl font-bold bg-gradient-to-r ${color} bg-clip-text text-transparent`}>
+                    {formatNumber(value)}
+                  </p>
+                  <span className={`text-xl bg-gradient-to-r ${color} bg-clip-text text-transparent font-medium`}>
+                    {unit}
+                  </span>
+                </div>
+              </div>
+            </motion.div>
+          ))}
         </div>
 
-        {/* Footer info */}
-        <div className="text-center mt-16 text-gray-400">
-          <p>Estimated completion: {format(getEstimatedDate(Math.ceil(new Big(stats.remainingAmount).div(new Big(stats.averageDailyIncrease)).toNumber())), 'PPP')}</p>
-          <p className="text-sm mt-2">Last updated: {format(new Date(), 'PPpp')}</p>
-        </div>
+        {/* Enhanced footer with better typography */}
+        <motion.div 
+          className="text-center mt-20 space-y-3"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+        >
+          <p className="text-lg text-gray-400/90 font-medium tracking-wide">
+            Estimated completion: {format(getEstimatedDate(Math.ceil(new Big(stats.remainingAmount).div(new Big(stats.averageDailyIncrease)).toNumber())), 'PPP')}
+          </p>
+          <p className="text-sm text-gray-400/70 tracking-wider">
+            Last updated: {format(new Date(), 'PPpp')}
+          </p>
+        </motion.div>
       </div>
     </div>
   );
