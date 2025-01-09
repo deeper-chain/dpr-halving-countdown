@@ -1,6 +1,6 @@
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import { DEEPER_NETWORK_ENDPOINT, MAX_RETRY_ATTEMPTS, RETRY_DELAY } from './constants';
-import { validateBalance, validateBlockNumber } from './validation';
+import { validateBalance } from './validation';
 
 let api: ApiPromise | null = null;
 let connectionAttempts = 0;
