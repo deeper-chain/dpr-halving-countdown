@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Big from 'big.js';
 import HalvingStats from '@/components/HalvingStats';
-import { getApi, getTotalIssuance, getCurrentBlock, getBlockHash } from '@/lib/api';
+import { getApi, getTotalIssuance, getCurrentBlock, getBlockHash, disconnectApi } from '@/lib/api';
 import { calculateDailyIncrease, calculateRemainingDays, validateData } from '@/lib/utils';
 import { BLOCKS_PER_DAY, CALCULATION_DAYS, MAX_RETRIES, API_TIMEOUT, RETRY_DELAY } from '@/lib/constants';
 import type { HalvingStats as HalvingStatsType } from '@/types';
@@ -111,7 +111,7 @@ export default function Home() {
       clearInterval(interval);
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
-      getApi().then(api => api.disconnect());
+      disconnectApi().catch(console.error);
     };
   }, [fetchStats]);
 
