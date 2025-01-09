@@ -168,8 +168,8 @@ export default function HalvingStats({ stats }: Props) {
         </motion.h1>
 
         {/* Enhanced countdown timer with improved layout */}
-        <div className="w-full max-w-6xl mx-auto mb-28">
-          <div className="grid grid-cols-4 gap-8 md:gap-12">
+        <div className="w-full max-w-6xl mx-auto mb-16 sm:mb-28">
+          <div className="grid grid-cols-4 gap-2 xs:gap-4 sm:gap-6 md:gap-8">
             {Object.entries(timeLeft).map(([unit, value], index) => (
               <motion.div
                 key={unit}
@@ -179,17 +179,17 @@ export default function HalvingStats({ stats }: Props) {
                 className="relative group"
                 whileHover={{ scale: 1.02, z: 1 }}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-2xl blur-xl group-hover:opacity-70 transition-all duration-300" />
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg sm:rounded-2xl blur-xl group-hover:opacity-70 transition-all duration-300" />
                 <div 
-                  className="relative overflow-hidden rounded-2xl backdrop-blur-xl bg-white/[0.02] border border-white/[0.05]"
+                  className="relative overflow-hidden rounded-lg sm:rounded-2xl backdrop-blur-xl bg-white/[0.02] border border-white/[0.05]"
                   style={{
                     boxShadow: '0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1)',
                     transform: 'translateZ(0)'
                   }}
                 >
-                  <div className="p-6 md:p-8">
+                  <div className="p-3 xs:p-4 sm:p-6 md:p-8">
                     <AnimatedNumber value={value} />
-                    <p className="text-gray-400/90 mt-4 text-lg font-medium tracking-wider text-center uppercase">
+                    <p className="text-gray-400/90 mt-2 sm:mt-4 text-sm sm:text-lg font-medium tracking-wider text-center uppercase">
                       {unit}
                     </p>
                   </div>
