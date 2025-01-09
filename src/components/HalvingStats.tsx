@@ -1,12 +1,35 @@
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
+import Big from 'big.js';
 import type { HalvingStats as HalvingStatsType } from '@/types';
 import { formatNumber, getEstimatedDate } from '@/lib/utils';
 
 interface Props {
   stats: HalvingStatsType;
 }
+
+// Add a new component for animated number
+const AnimatedNumber = ({ value }: { value: number }) => (
+  <div className="relative h-24 overflow-hidden">
+    <AnimatePresence mode="wait">
+      <motion.span
+        key={value}
+        initial={{ y: 50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: -50, opacity: 0 }}
+        transition={{ 
+          type: "spring",
+          stiffness: 300,
+          damping: 30
+        }}
+        className="absolute inset-0 flex items-center justify-center text-6xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"
+      >
+        {value.toString().padStart(2, '0')}
+      </motion.span>
+    </AnimatePresence>
+  </div>
+);
 
 export default function HalvingStats({ stats }: Props) {
   const [timeLeft, setTimeLeft] = useState({
@@ -17,22 +40,39 @@ export default function HalvingStats({ stats }: Props) {
   });
 
   useEffect(() => {
-    const updateTimer = () => {
-      const now = new Date();
-      const target = new Date(now.getTime() + stats.estimatedDays * 24 * 60 * 60 * 1000);
-      const diff = target.getTime() - now.getTime();
+    const calculateTimeLeft = () => {
+      // 计算剩余天数（向上取整，因为是倒计时）
+      const remainingDays = Math.ceil(
+        new Big(stats.remainingAmount).div(new Big(stats.averageDailyIncrease)).toNumber()
+      );
       
-      setTimeLeft({
-        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
-        hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-        minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
-        seconds: Math.floor((diff % (1000 * 60)) / 1000)
-      });
+      // 计算目标时间
+      const targetDate = new Date();
+      targetDate.setDate(targetDate.getDate() + remainingDays);
+      targetDate.setHours(0, 0, 0, 0); // 设置为当天的开始时间
+      
+      // 计算剩余时间
+      const now = new Date().getTime();
+      const difference = targetDate.getTime() - now;
+      
+      if (difference > 0) {
+        setTimeLeft({
+          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((difference % (1000 * 60)) / 1000)
+        });
+      }
     };
 
-    const timer = setInterval(updateTimer, 1000);
+    // 立即计算一次
+    calculateTimeLeft();
+    
+    // 每秒更新一次
+    const timer = setInterval(calculateTimeLeft, 1000);
+
     return () => clearInterval(timer);
-  }, [stats.estimatedDays]);
+  }, [stats.remainingAmount, stats.averageDailyIncrease]); // 依赖项更新
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a192f] via-[#20295f] to-[#0a192f] text-white">
@@ -48,7 +88,7 @@ export default function HalvingStats({ stats }: Props) {
 
         {/* Main countdown timer */}
         <div className="max-w-4xl mx-auto mb-24">
-          <div className="grid grid-cols-4 gap-4 text-center">
+          <div className="grid grid-cols-4 gap-8 text-center">
             {Object.entries(timeLeft).map(([unit, value]) => (
               <motion.div
                 key={unit}
@@ -56,18 +96,8 @@ export default function HalvingStats({ stats }: Props) {
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
-                <AnimatePresence mode="wait">
-                  <motion.span
-                    key={value}
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: -20, opacity: 0 }}
-                    className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"
-                  >
-                    {value.toString().padStart(2, '0')}
-                  </motion.span>
-                </AnimatePresence>
-                <p className="text-gray-400 mt-2 capitalize">{unit}</p>
+                <AnimatedNumber value={value} />
+                <p className="text-gray-400 mt-4 text-lg capitalize">{unit}</p>
               </motion.div>
             ))}
           </div>
@@ -111,7 +141,7 @@ export default function HalvingStats({ stats }: Props) {
 
         {/* Footer info */}
         <div className="text-center mt-16 text-gray-400">
-          <p>Estimated completion: {format(getEstimatedDate(stats.estimatedDays), 'PPP')}</p>
+          <p>Estimated completion: {format(getEstimatedDate(Math.ceil(new Big(stats.remainingAmount).div(new Big(stats.averageDailyIncrease)).toNumber())), 'PPP')}</p>
           <p className="text-sm mt-2">Last updated: {format(new Date(), 'PPpp')}</p>
         </div>
       </div>
