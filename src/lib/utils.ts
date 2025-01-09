@@ -13,25 +13,42 @@ export function calculateDailyIncrease(
   previousBalance: string,
   days: number
 ): string {
-  const current = new Big(currentBalance);
-  const previous = new Big(previousBalance);
-  const increase = current.minus(previous);
-  return increase.div(days).toFixed(0);
+  try {
+    if (days <= 0) throw new Error('Invalid days parameter');
+    
+    const current = new Big(currentBalance);
+    const previous = new Big(previousBalance);
+    
+    if (previous.gt(current)) {
+      throw new Error('Previous balance greater than current balance');
+    }
+    
+    const increase = current.minus(previous);
+    return increase.div(days).toFixed(0);
+  } catch (err) {
+    console.error('Error calculating daily increase:', err);
+    throw err;
+  }
 }
 
 // Calculate remaining days until halving
 export function calculateRemainingDays(
   dailyIncrease: string,
-  remainingAmount: string,
+  remainingAmount: string
 ): number {
-  const daily = new Big(dailyIncrease);
-  const remaining = new Big(remainingAmount);
-  
-  if (daily.eq(0)) {
-    return Infinity;
+  try {
+    const increase = new Big(dailyIncrease);
+    const remaining = new Big(remainingAmount);
+    
+    if (increase.lte(0)) {
+      throw new Error('Daily increase must be positive');
+    }
+    
+    return Math.ceil(remaining.div(increase).toNumber());
+  } catch (err) {
+    console.error('Error calculating remaining days:', err);
+    throw err;
   }
-  
-  return Math.ceil(Number(remaining.div(daily).toFixed(2)));
 }
 
 // Format large numbers with commas
@@ -44,4 +61,20 @@ export function getEstimatedDate(days: number): Date {
   const date = new Date();
   date.setDate(date.getDate() + days);
   return date;
+}
+
+// 添加数据验证函数
+export function validateData(currentIssuance: string, currentBlock: number): boolean {
+  try {
+    // 验证发行量
+    const issuance = new Big(currentIssuance);
+    if (!issuance.gte(0)) return false;
+    
+    // 验证区块高度
+    if (!Number.isInteger(currentBlock) || currentBlock < 0) return false;
+    
+    return true;
+  } catch {
+    return false;
+  }
 } 
