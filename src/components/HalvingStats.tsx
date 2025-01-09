@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import Big from 'big.js';
 import type { HalvingStats as HalvingStatsType } from '@/types';
 import { formatNumber, getEstimatedDate } from '@/lib/utils';
 import { NetworkBackground } from './NetworkBackground';
+import { sanitizeNumber, validateTimeLeft } from '@/lib/validation';
 
 interface Props {
   stats: HalvingStatsType;
@@ -77,12 +78,19 @@ export default function HalvingStats({ stats }: Props) {
     minutes: 0,
     seconds: 0
   });
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const calculateTimeLeft = () => {
-      // 计算剩余天数（向上取整，因为是倒计时）
+  const calculateTimeLeft = useCallback(() => {
+    try {
+      // 验证输入数据
+      if (!stats.remainingAmount || !stats.averageDailyIncrease) {
+        throw new Error('Invalid input data');
+      }
+
       const remainingDays = Math.ceil(
-        new Big(stats.remainingAmount).div(new Big(stats.averageDailyIncrease)).toNumber()
+        new Big(sanitizeNumber(stats.remainingAmount))
+          .div(new Big(sanitizeNumber(stats.averageDailyIncrease)))
+          .toNumber()
       );
       
       // 计算目标时间
@@ -95,15 +103,28 @@ export default function HalvingStats({ stats }: Props) {
       const difference = targetDate.getTime() - now;
       
       if (difference > 0) {
-        setTimeLeft({
+        const newTimeLeft = {
           days: Math.floor(difference / (1000 * 60 * 60 * 24)),
           hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
           minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
           seconds: Math.floor((difference % (1000 * 60)) / 1000)
-        });
+        };
+        
+        // 验证计算结果
+        if (!validateTimeLeft(newTimeLeft)) {
+          throw new Error('Invalid time calculation');
+        }
+        
+        setTimeLeft(newTimeLeft);
+        setError(null);
       }
-    };
+    } catch (err) {
+      setError('Error calculating remaining time');
+      console.error(err);
+    }
+  }, [stats]);
 
+  useEffect(() => {
     // 立即计算一次
     calculateTimeLeft();
     
@@ -111,10 +132,15 @@ export default function HalvingStats({ stats }: Props) {
     const timer = setInterval(calculateTimeLeft, 1000);
 
     return () => clearInterval(timer);
-  }, [stats.remainingAmount, stats.averageDailyIncrease]); // 依赖项更新
+  }, [calculateTimeLeft]); // 依赖项更新
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#0a192f] via-[#1a1f3c] to-[#0a192f]">
+      {error && (
+        <div className="absolute top-4 right-4 bg-red-500/20 text-red-100 px-4 py-2 rounded-lg">
+          {error}
+        </div>
+      )}
       {/* Add network background */}
       <NetworkBackground />
       
