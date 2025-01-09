@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Big from 'big.js';
 import type { HalvingStats as HalvingStatsType } from '@/types';
 import { formatNumber, getEstimatedDate } from '@/lib/utils';
+import { NetworkBackground } from './NetworkBackground';
 
 interface Props {
   stats: HalvingStatsType;
@@ -114,6 +115,10 @@ export default function HalvingStats({ stats }: Props) {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#0a192f] via-[#1a1f3c] to-[#0a192f]">
+      {/* Add network background */}
+      <NetworkBackground />
+      
+      {/* Existing particle effect */}
       <ParticleEffect />
       
       {/* Add subtle aurora effect */}
