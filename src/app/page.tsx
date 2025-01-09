@@ -5,7 +5,7 @@ import Big from 'big.js';
 import HalvingStats from '@/components/HalvingStats';
 import { getApi, getTotalIssuance, getCurrentBlock, getBlockHash } from '@/lib/api';
 import { calculateDailyIncrease, calculateRemainingDays } from '@/lib/utils';
-import { BLOCKS_PER_DAY, CALCULATION_DAYS, TARGET_HALVING_AMOUNT } from '@/lib/constants';
+import { BLOCKS_PER_DAY, CALCULATION_DAYS } from '@/lib/constants';
 import type { HalvingStats as HalvingStatsType } from '@/types';
 
 export default function Home() {

@@ -12,10 +12,10 @@ async function connectWithRetry(): Promise<ApiPromise> {
     const newApi = await ApiPromise.create({ provider });
     connectionAttempts = 0;
     return newApi;
-  } catch (error) {
+  } catch (err) {
     connectionAttempts++;
     if (connectionAttempts >= MAX_RETRY_ATTEMPTS) {
-      throw new Error('Failed to connect to Deeper Network');
+      throw new Error(`Failed to connect to Deeper Network: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
     await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
     return connectWithRetry();

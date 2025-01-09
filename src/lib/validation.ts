@@ -1,10 +1,16 @@
 import Big from 'big.js';
-import { DECIMAL_PLACES } from './constants';
+
+interface TimeLeft {
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+}
 
 export function validateBalance(balance: string): boolean {
   try {
     const num = new Big(balance);
-    return num.gte(0) && num.lt(new Big(10).pow(50)); // 合理的上限
+    return num.gte(0) && num.lt(new Big(10).pow(50));
   } catch {
     return false;
   }
@@ -18,7 +24,7 @@ export function sanitizeNumber(value: string): string {
   return value.replace(/[^0-9.]/g, '');
 }
 
-export function validateTimeLeft(timeLeft: any): boolean {
+export function validateTimeLeft(timeLeft: TimeLeft): boolean {
   const { days, hours, minutes, seconds } = timeLeft;
   return (
     Number.isInteger(days) && days >= 0 &&
