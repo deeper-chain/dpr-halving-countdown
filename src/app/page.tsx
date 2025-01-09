@@ -51,7 +51,6 @@ export default function Home() {
       const estimatedDays = calculateRemainingDays(
         dailyIncrease,
         remainingAmount,
-        '1'
       );
 
       setStats({

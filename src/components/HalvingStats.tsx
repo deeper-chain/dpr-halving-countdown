@@ -20,7 +20,7 @@ export default function HalvingStats({ stats }: Props) {
     setLastUpdate(new Date());
 
     // Calculate progress percentage
-    const total = 20_000_000_000 * Math.pow(10, 18); // 20 billion with 18 decimals
+    const total = 20_000_000_000 * Math.pow(10, 18);
     const current = BigInt(stats.currentIssuance);
     const percentage = Number((current * BigInt(100)) / BigInt(total));
     setProgress(percentage);
@@ -36,54 +36,73 @@ export default function HalvingStats({ stats }: Props) {
   }, [stats]);
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-8 dark:bg-gray-900 dark:text-white min-h-screen">
-      <h1 className="text-4xl font-bold text-center mb-8">
-        DPR Second Halving Countdown
-      </h1>
-
-      {/* Progress bar */}
-      <div className="w-full bg-gray-200 rounded-full h-4 dark:bg-gray-700 mb-8">
-        <div
-          className="bg-blue-600 h-4 rounded-full transition-all duration-500"
-          style={{ width: `${progress}%` }}
-        />
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 text-white py-12 px-4">
+      {/* Main countdown section */}
+      <div className="max-w-6xl mx-auto mb-16 text-center">
+        <h1 className="text-5xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
+          DPR Second Halving Countdown
+        </h1>
+        
+        {/* Circular progress with countdown */}
+        <div className="relative w-64 h-64 mx-auto mb-12">
+          <svg className="w-full h-full transform -rotate-90">
+            <circle
+              className="text-gray-700"
+              strokeWidth="12"
+              stroke="currentColor"
+              fill="transparent"
+              r="120"
+              cx="128"
+              cy="128"
+            />
+            <circle
+              className="text-blue-500"
+              strokeWidth="12"
+              stroke="currentColor"
+              fill="transparent"
+              r="120"
+              cx="128"
+              cy="128"
+              strokeDasharray={2 * Math.PI * 120}
+              strokeDashoffset={2 * Math.PI * 120 * (1 - progress / 100)}
+              strokeLinecap="round"
+            />
+          </svg>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+            <div className="text-4xl font-bold">{Math.floor(stats.estimatedDays)}</div>
+            <div className="text-xl">Days Left</div>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <div className="p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800 transform hover:scale-105 transition-transform duration-200">
-          <h2 className="text-xl font-semibold mb-2">Current Issuance</h2>
-          <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+      {/* Stats cards */}
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="backdrop-blur-md bg-white/10 rounded-2xl p-6 shadow-xl border border-white/20 transform hover:scale-105 transition-all duration-300">
+          <h2 className="text-lg font-semibold text-gray-300 mb-2">Current Issuance</h2>
+          <p className="text-3xl font-bold text-blue-400">
             {formatNumber(stats.currentIssuance)} DPR
           </p>
         </div>
 
-        <div className="p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800 transform hover:scale-105 transition-transform duration-200">
-          <h2 className="text-xl font-semibold mb-2">Remaining Until Halving</h2>
-          <p className="text-3xl font-bold text-green-600 dark:text-green-400">
+        <div className="backdrop-blur-md bg-white/10 rounded-2xl p-6 shadow-xl border border-white/20 transform hover:scale-105 transition-all duration-300">
+          <h2 className="text-lg font-semibold text-gray-300 mb-2">Remaining Until Halving</h2>
+          <p className="text-3xl font-bold text-green-400">
             {formatNumber(stats.remainingAmount)} DPR
           </p>
         </div>
 
-        <div className="p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800 transform hover:scale-105 transition-transform duration-200">
-          <h2 className="text-xl font-semibold mb-2">Daily Average Increase</h2>
-          <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+        <div className="backdrop-blur-md bg-white/10 rounded-2xl p-6 shadow-xl border border-white/20 transform hover:scale-105 transition-all duration-300">
+          <h2 className="text-lg font-semibold text-gray-300 mb-2">Daily Average Increase</h2>
+          <p className="text-3xl font-bold text-purple-400">
             {formatNumber(stats.averageDailyIncrease)} DPR
-          </p>
-        </div>
-
-        <div className="p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800 transform hover:scale-105 transition-transform duration-200">
-          <h2 className="text-xl font-semibold mb-2">Time Until Halving</h2>
-          <p className="text-3xl font-bold text-red-600 dark:text-red-400">
-            {timeLeft}
-          </p>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-            Estimated completion: {estimatedDate}
           </p>
         </div>
       </div>
 
-      <div className="text-center text-sm text-gray-600 dark:text-gray-400 mt-8">
-        Last updated: {format(lastUpdate, 'PPpp')}
+      {/* Estimated completion date */}
+      <div className="text-center mt-12 text-gray-400">
+        <p>Estimated completion: {estimatedDate}</p>
+        <p className="text-sm mt-2">Last updated: {format(lastUpdate, 'PPpp')}</p>
       </div>
     </div>
   );
