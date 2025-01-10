@@ -1,13 +1,11 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
-import Big from 'big.js';
 import HalvingStats from '@/components/HalvingStats';
 import { getApi, getTotalIssuance, getCurrentBlock, getBlockHash, disconnectApi } from '@/lib/api';
 import { calculateDailyIncrease, calculateRemainingDays, validateData, determineHalvingPhase, calculateRemainingAmount } from '@/lib/utils';
 import { BLOCKS_PER_DAY, CALCULATION_DAYS, MAX_RETRIES, API_TIMEOUT, RETRY_DELAY } from '@/lib/constants';
 import type { HalvingStats as HalvingStatsType } from '@/types';
-import { HalvingPhase } from '@/lib/constants';
 
 export default function Home() {
   const [stats, setStats] = useState<HalvingStatsType | null>(null);

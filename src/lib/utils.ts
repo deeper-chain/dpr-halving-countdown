@@ -1,5 +1,5 @@
 import Big from 'big.js';
-import { DECIMAL_PLACES, SECOND_HALVING_AMOUNT, THIRD_HALVING_AMOUNT, HALVING_CONFIG, HalvingPhase } from './constants';
+import { DECIMAL_PLACES, SECOND_HALVING_AMOUNT, HALVING_CONFIG, HalvingPhase } from './constants';
 
 // Convert from chain format (with 18 decimals) to human readable format
 export function formatBalance(balance: string): string {

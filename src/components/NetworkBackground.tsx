@@ -88,9 +88,6 @@ export const NetworkBackground = () => {
     // 批量绘制连接
     ctx.beginPath();
     connectionsRef.current.forEach(conn => {
-      const progress = conn.age / conn.maxAge;
-      const alpha = 0.3 * (1 - progress);
-      
       ctx.moveTo(conn.from.x, conn.from.y);
       ctx.lineTo(conn.to.x, conn.to.y);
       conn.age++;

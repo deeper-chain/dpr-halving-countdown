@@ -31,6 +31,7 @@ const ParticleEffect = () => (
     </motion.div>
   </div>
 );
+ParticleEffect.displayName = 'ParticleEffect';
 
 // Enhanced AnimatedNumber with improved 3D effect
 const AnimatedNumber = memo(({ value }: { value: number }) => (
@@ -74,6 +75,7 @@ const AnimatedNumber = memo(({ value }: { value: number }) => (
     />
   </div>
 ));
+AnimatedNumber.displayName = 'AnimatedNumber';
 
 // 添加类型定义
 interface StatCardProps {
@@ -115,6 +117,7 @@ const StatCard = memo(({ label, value, color, unit }: StatCardProps) => {
     </motion.div>
   );
 });
+StatCard.displayName = 'StatCard';
 
 export default function HalvingStats({ stats }: Props) {
   const { halvingPhase } = stats;
