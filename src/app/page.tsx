@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import Big from 'big.js';
 import HalvingStats from '@/components/HalvingStats';
 import { getApi, getTotalIssuance, getCurrentBlock, getBlockHash, disconnectApi } from '@/lib/api';
@@ -15,8 +15,19 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
 
+  const dataCache = useRef<{
+    timestamp: number;
+    data: HalvingStatsType;
+  } | null>(null);
+
   const fetchStats = useCallback(async () => {
     try {
+      if (dataCache.current && 
+          Date.now() - dataCache.current.timestamp < 5 * 60 * 1000) {
+        setStats(dataCache.current.data);
+        return;
+      }
+
       setIsLoading(true);
       
       const [currentIssuance, currentBlock] = await Promise.race([
@@ -60,13 +71,19 @@ export default function Home() {
         throw new Error('Invalid calculation result');
       }
 
-      setStats({
-        currentIssuance,
-        remainingAmount,
-        estimatedDays,
-        averageDailyIncrease: dailyIncrease,
-        halvingPhase: currentPhase,
-      });
+      // 更新缓存
+      dataCache.current = {
+        timestamp: Date.now(),
+        data: {
+          currentIssuance,
+          remainingAmount,
+          estimatedDays,
+          averageDailyIncrease: dailyIncrease,
+          halvingPhase: currentPhase,
+        }
+      };
+
+      setStats(dataCache.current.data);
       
       setError(null);
       setRetryCount(0);

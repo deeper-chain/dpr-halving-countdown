@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import Big from 'big.js';
@@ -7,6 +7,7 @@ import { formatNumber, getEstimatedDate } from '@/lib/utils';
 import { NetworkBackground } from './NetworkBackground';
 import { sanitizeNumber, validateTimeLeft } from '@/lib/validation';
 import { HalvingPhase, HALVING_CONFIG } from '@/lib/constants';
+import { memo } from 'react';
 
 interface Props {
   stats: HalvingStatsType & {
@@ -32,7 +33,7 @@ const ParticleEffect = () => (
 );
 
 // Enhanced AnimatedNumber with improved 3D effect
-const AnimatedNumber = ({ value }: { value: number }) => (
+const AnimatedNumber = memo(({ value }: { value: number }) => (
   <div className="relative h-40 perspective-[1000px]">
     <AnimatePresence mode="wait">
       <motion.div
@@ -72,7 +73,48 @@ const AnimatedNumber = ({ value }: { value: number }) => (
       className="absolute inset-0 bg-blue-500/10 rounded-full blur-xl"
     />
   </div>
-);
+));
+
+// 添加类型定义
+interface StatCardProps {
+  label: string;
+  value: string;
+  color: string;
+  unit: string;
+}
+
+// 使用 memo 优化纯展示组件
+const StatCard = memo(({ label, value, color, unit }: StatCardProps) => {
+  // 使用 useMemo 缓存格式化的数值
+  const formattedValue = useMemo(() => formatNumber(value), [value]);
+  
+  return (
+    <motion.div
+      className="group relative h-full"
+      whileHover={{ scale: 1.02 }}
+      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] to-white/[0.1] rounded-2xl blur-xl group-hover:opacity-70 transition-opacity" />
+      <div 
+        className="relative h-full rounded-2xl backdrop-blur-xl p-8 border border-white/[0.05] flex flex-col justify-between"
+        style={{
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.05) 100%)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1)'
+        }}
+      >
+        <h2 className="text-gray-400 text-lg font-medium mb-4 tracking-wide">{label}</h2>
+        <div className="flex items-baseline gap-2">
+          <p className={`text-2xl md:text-3xl font-bold bg-gradient-to-r ${color} bg-clip-text text-transparent`}>
+            {formattedValue}
+          </p>
+          <span className={`text-xl bg-gradient-to-r ${color} bg-clip-text text-transparent font-medium`}>
+            {unit}
+          </span>
+        </div>
+      </div>
+    </motion.div>
+  );
+});
 
 export default function HalvingStats({ stats }: Props) {
   const { halvingPhase } = stats;
@@ -244,48 +286,30 @@ export default function HalvingStats({ stats }: Props) {
           {[
             { 
               label: 'Current Issuance', 
-              value: stats.currentIssuance, 
+              value: stats.currentIssuance.toString(), 
               color: 'from-blue-400 via-blue-500 to-blue-600',
               unit: 'DPR'
             },
             { 
               label: 'Remaining Until Halving', 
-              value: stats.remainingAmount, 
+              value: stats.remainingAmount.toString(), 
               color: 'from-green-400 via-green-500 to-green-600',
               unit: 'DPR'
             },
             { 
               label: 'Daily Average Increase', 
-              value: stats.averageDailyIncrease, 
+              value: stats.averageDailyIncrease.toString(), 
               color: 'from-purple-400 via-purple-500 to-purple-600',
               unit: 'DPR'
             }
           ].map(({ label, value, color, unit }) => (
-            <motion.div
+            <StatCard
               key={label}
-              className="group relative h-full"
-              whileHover={{ scale: 1.02 }}
-              transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] to-white/[0.1] rounded-2xl blur-xl group-hover:opacity-70 transition-opacity" />
-              <div 
-                className="relative h-full rounded-2xl backdrop-blur-xl p-8 border border-white/[0.05] flex flex-col justify-between"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.05) 100%)',
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1)'
-                }}
-              >
-                <h2 className="text-gray-400 text-lg font-medium mb-4 tracking-wide">{label}</h2>
-                <div className="flex items-baseline gap-2">
-                  <p className={`text-2xl md:text-3xl font-bold bg-gradient-to-r ${color} bg-clip-text text-transparent`}>
-                    {formatNumber(value)}
-                  </p>
-                  <span className={`text-xl bg-gradient-to-r ${color} bg-clip-text text-transparent font-medium`}>
-                    {unit}
-                  </span>
-                </div>
-              </div>
-            </motion.div>
+              label={label}
+              value={value}
+              color={color}
+              unit={unit}
+            />
           ))}
         </div>
 
