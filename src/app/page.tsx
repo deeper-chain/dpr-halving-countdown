@@ -89,24 +89,48 @@ export default function Home() {
   }, [retryCount]);
 
   useEffect(() => {
-    fetchStats();
+    let isSubscribed = true;
     
-    // 添加网络状态监听
-    const handleOnline = () => {
-      setError(null);
-      fetchStats();
+    const fetchAndUpdate = async () => {
+      if (!isSubscribed) return;
+      await fetchStats();
     };
+
+    fetchAndUpdate();
+    
+    // 使用 setTimeout 代替 setInterval，可以避免并发请求
+    const scheduleNextUpdate = () => {
+      setTimeout(() => {
+        fetchAndUpdate().then(() => {
+          if (isSubscribed) {
+            scheduleNextUpdate();
+          }
+        });
+      }, 5 * 60 * 1000);
+    };
+
+    scheduleNextUpdate();
+
+    // 网络状态监听
+    const handleOnline = () => {
+      if (isSubscribed) {
+        setError(null);
+        fetchAndUpdate();
+      }
+    };
+    
     const handleOffline = () => {
-      setError('Network connection lost');
+      if (isSubscribed) {
+        setError('Network connection lost');
+      }
     };
     
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     
-    const interval = setInterval(fetchStats, 5 * 60 * 1000);
-    
+    // 清理函数
     return () => {
-      clearInterval(interval);
+      isSubscribed = false;
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
       disconnectApi().catch(console.error);

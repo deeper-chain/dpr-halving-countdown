@@ -86,58 +86,93 @@ export default function HalvingStats({ stats }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   const calculateTimeLeft = useCallback(() => {
-    try {
-      // 验证输入数据
-      if (!stats.remainingAmount || !stats.averageDailyIncrease) {
-        throw new Error('Invalid input data');
-      }
+    let animationFrameId: number;
+    let isRunning = true;
+    
+    const updateTime = () => {
+      if (!isRunning) return;
 
-      const remainingDays = Math.ceil(
-        new Big(sanitizeNumber(stats.remainingAmount))
-          .div(new Big(sanitizeNumber(stats.averageDailyIncrease)))
-          .toNumber()
-      );
-      
-      // 计算目标时间
-      const targetDate = new Date();
-      targetDate.setDate(targetDate.getDate() + remainingDays);
-      targetDate.setHours(0, 0, 0, 0); // 设置为当天的开始时间
-      
-      // 计算剩余时间
-      const now = new Date().getTime();
-      const difference = targetDate.getTime() - now;
-      
-      if (difference > 0) {
-        const newTimeLeft = {
-          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-          hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-          minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
-          seconds: Math.floor((difference % (1000 * 60)) / 1000)
-        };
+      try {
+        // 验证输入数据
+        if (!stats.remainingAmount || !stats.averageDailyIncrease) {
+          throw new Error('Invalid input data');
+        }
+
+        const remainingDays = Math.ceil(
+          new Big(sanitizeNumber(stats.remainingAmount))
+            .div(new Big(sanitizeNumber(stats.averageDailyIncrease)))
+            .toNumber()
+        );
         
-        // 验证计算结果
-        if (!validateTimeLeft(newTimeLeft)) {
-          throw new Error('Invalid time calculation');
+        // 计算目标时间
+        const targetDate = new Date();
+        targetDate.setDate(targetDate.getDate() + remainingDays);
+        targetDate.setHours(0, 0, 0, 0); // 设置为当天的开始时间
+        
+        // 计算剩余时间
+        const now = new Date().getTime();
+        const difference = targetDate.getTime() - now;
+        
+        if (difference > 0) {
+          const newTimeLeft = {
+            days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+            hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+            minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
+            seconds: Math.floor((difference % (1000 * 60)) / 1000)
+          };
+          
+          // 验证计算结果
+          if (!validateTimeLeft(newTimeLeft)) {
+            throw new Error('Invalid time calculation');
+          }
+          
+          setTimeLeft(newTimeLeft);
+          setError(null);
         }
         
-        setTimeLeft(newTimeLeft);
-        setError(null);
+        if (document.visibilityState === 'visible') {
+          animationFrameId = requestAnimationFrame(updateTime);
+        }
+      } catch (err) {
+        console.error(err);
       }
-    } catch (err) {
-      setError('Error calculating remaining time');
-      console.error(err);
-    }
+    };
+
+    // 处理页面可见性变化
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        isRunning = true;
+        updateTime(); // 重新开始动画
+      } else {
+        isRunning = false;
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+      }
+    };
+
+    // 添加可见性变化监听
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // 开始初始更新
+    updateTime();
+    
+    // 清理函数
+    return () => {
+      isRunning = false;
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
   }, [stats]);
 
   useEffect(() => {
-    // 立即计算一次
-    calculateTimeLeft();
-    
-    // 每秒更新一次
-    const timer = setInterval(calculateTimeLeft, 1000);
-
-    return () => clearInterval(timer);
-  }, [calculateTimeLeft]); // 依赖项更新
+    const cleanup = calculateTimeLeft();
+    return () => {
+      cleanup();
+    };
+  }, [calculateTimeLeft]);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#0a192f] via-[#1a1f3c] to-[#0a192f]">
