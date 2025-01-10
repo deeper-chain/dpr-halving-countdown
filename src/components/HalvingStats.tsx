@@ -6,9 +6,12 @@ import type { HalvingStats as HalvingStatsType } from '@/types';
 import { formatNumber, getEstimatedDate } from '@/lib/utils';
 import { NetworkBackground } from './NetworkBackground';
 import { sanitizeNumber, validateTimeLeft } from '@/lib/validation';
+import { HalvingPhase, HALVING_CONFIG } from '@/lib/constants';
 
 interface Props {
-  stats: HalvingStatsType;
+  stats: HalvingStatsType & {
+    halvingPhase: HalvingPhase;
+  };
 }
 
 // Particle effect component
@@ -72,6 +75,8 @@ const AnimatedNumber = ({ value }: { value: number }) => (
 );
 
 export default function HalvingStats({ stats }: Props) {
+  const { halvingPhase } = stats;
+  const phaseConfig = HALVING_CONFIG[halvingPhase];
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
@@ -164,7 +169,7 @@ export default function HalvingStats({ stats }: Props) {
             filter: 'drop-shadow(0 0 2px rgba(96, 165, 250, 0.2))'
           }}
         >
-          DPR Second Halving Countdown
+          DPR {phaseConfig.title} Countdown
         </motion.h1>
 
         {/* Enhanced countdown timer with improved layout */}

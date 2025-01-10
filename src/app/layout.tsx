@@ -4,16 +4,23 @@ import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  title: "DPR Second Halving Countdown | Deeper Network",
-  description: "Track the countdown to DPR second halving event on Deeper Network",
-  keywords: "DPR, Deeper Network, Halving, Countdown, Crypto",
-  openGraph: {
-    title: "DPR Second Halving Countdown | Deeper Network",
-    description: "Track the countdown to DPR second halving event on Deeper Network",
-    type: "website",
-  }
-};
+// 动态生成标题的函数
+function generateMetadata(phase: number): Metadata {
+  const phaseText = phase === 2 ? 'Second' : 'Third';
+  
+  return {
+    title: `DPR ${phaseText} Halving Countdown | Deeper Network`,
+    description: `Track the countdown to DPR ${phaseText.toLowerCase()} halving event on Deeper Network`,
+    keywords: "DPR, Deeper Network, Halving, Countdown, Crypto",
+    openGraph: {
+      title: `DPR ${phaseText} Halving Countdown | Deeper Network`,
+      description: `Track the countdown to DPR ${phaseText.toLowerCase()} halving event on Deeper Network`,
+      type: "website",
+    }
+  };
+}
+
+export const metadata = generateMetadata(2); // 默认显示第二次减半
 
 export default function RootLayout({
   children,

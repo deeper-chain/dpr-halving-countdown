@@ -4,9 +4,10 @@ import { useEffect, useState, useCallback } from 'react';
 import Big from 'big.js';
 import HalvingStats from '@/components/HalvingStats';
 import { getApi, getTotalIssuance, getCurrentBlock, getBlockHash, disconnectApi } from '@/lib/api';
-import { calculateDailyIncrease, calculateRemainingDays, validateData } from '@/lib/utils';
+import { calculateDailyIncrease, calculateRemainingDays, validateData, determineHalvingPhase, calculateRemainingAmount } from '@/lib/utils';
 import { BLOCKS_PER_DAY, CALCULATION_DAYS, MAX_RETRIES, API_TIMEOUT, RETRY_DELAY } from '@/lib/constants';
 import type { HalvingStats as HalvingStatsType } from '@/types';
+import { HalvingPhase } from '@/lib/constants';
 
 export default function Home() {
   const [stats, setStats] = useState<HalvingStatsType | null>(null);
@@ -18,29 +19,25 @@ export default function Home() {
     try {
       setIsLoading(true);
       
-      // 添加请求超时处理
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Request timeout')), API_TIMEOUT);
-      });
-
-      // 添加类型断言
       const [currentIssuance, currentBlock] = await Promise.race([
         Promise.all([
           getTotalIssuance(),
           getCurrentBlock()
         ]) as Promise<[string, number]>,
-        timeoutPromise
+        new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('Request timeout')), API_TIMEOUT);
+        })
       ]);
 
-      // 数据验证
       if (!validateData(currentIssuance, currentBlock)) {
         throw new Error('Invalid data received');
       }
 
-      // 计算目标金额
-      const targetAmount = new Big(2_000_000_000).times(new Big(10).pow(18));
-      const currentAmount = new Big(currentIssuance);
-      const remainingAmount = targetAmount.minus(currentAmount).toFixed(0);
+      // 确定当前减半阶段
+      const currentPhase = determineHalvingPhase(currentIssuance);
+      
+      // 计算剩余金额
+      const remainingAmount = calculateRemainingAmount(currentIssuance, currentPhase);
 
       // 获取历史数据
       const previousBlock = currentBlock - (BLOCKS_PER_DAY * CALCULATION_DAYS);
@@ -68,6 +65,7 @@ export default function Home() {
         remainingAmount,
         estimatedDays,
         averageDailyIncrease: dailyIncrease,
+        halvingPhase: currentPhase,
       });
       
       setError(null);

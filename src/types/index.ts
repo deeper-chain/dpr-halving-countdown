@@ -1,10 +1,12 @@
 import type { Big as BigType } from 'big.js';
+import { HalvingPhase } from '@/lib/constants';
 
 export interface HalvingStats {
   currentIssuance: string;
   remainingAmount: string;
   estimatedDays: number;
   averageDailyIncrease: string;
+  halvingPhase: HalvingPhase;
 }
 
 export interface TimeLeft {

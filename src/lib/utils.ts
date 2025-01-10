@@ -1,5 +1,5 @@
 import Big from 'big.js';
-import { DECIMAL_PLACES } from './constants';
+import { DECIMAL_PLACES, SECOND_HALVING_AMOUNT, THIRD_HALVING_AMOUNT, HALVING_CONFIG, HalvingPhase } from './constants';
 
 // Convert from chain format (with 18 decimals) to human readable format
 export function formatBalance(balance: string): string {
@@ -77,4 +77,26 @@ export function validateData(currentIssuance: string, currentBlock: number): boo
   } catch {
     return false;
   }
+}
+
+// 添加新的辅助函数
+export function determineHalvingPhase(currentIssuance: string): HalvingPhase {
+  const issuance = new Big(currentIssuance);
+  
+  if (issuance.gte(SECOND_HALVING_AMOUNT)) {
+    return HalvingPhase.THIRD;
+  }
+  return HalvingPhase.SECOND;
+}
+
+// 修改计算目标金额的函数
+export function getTargetAmount(phase: HalvingPhase): Big {
+  return HALVING_CONFIG[phase].target;
+}
+
+// 修改计算剩余金额的函数
+export function calculateRemainingAmount(currentIssuance: string, phase: HalvingPhase): string {
+  const current = new Big(currentIssuance);
+  const target = getTargetAmount(phase);
+  return target.minus(current).toFixed(0);
 } 
